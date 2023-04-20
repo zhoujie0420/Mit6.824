@@ -5,31 +5,39 @@ import "log"
 import "net/rpc"
 import "hash/fnv"
 
-
-//
 // Map functions return a slice of KeyValue.
-//
 type KeyValue struct {
 	Key   string
 	Value string
 }
 
-//
 // use ihash(key) % NReduce to choose the reduce
 // task number for each KeyValue emitted by Map.
-//
 func ihash(key string) int {
 	h := fnv.New32a()
 	h.Write([]byte(key))
 	return int(h.Sum32() & 0x7fffffff)
 }
 
-
-//
 // main/mrworker.go calls this function.
-//
 func Worker(mapf func(string, string) []KeyValue,
 	reducef func(string, []string) string) {
+	for true {
+		args := GetTaskRequest{}
+		args.X = 0
+		rep := GetTaskResponse{}
+		call("Master.GetTask", &args, &rep)
+
+		if rep.TaskType == Map {
+			filenames := HandleMap(mapf, rep, MFileName, rep.ReduceNumber, rep.TaskName)
+			rargs := ReportStatusRequest{filenames, rep.TaskName}
+			rreply := ReportStatusResponse{0}
+			call("Master.Report", &rargs, &rreply)
+		} else if rep.TaskType == Reduce {
+			HandleReduce(reducef, rep.RFileName)
+			//rargs:= ReportStatusRequest{}
+		}
+	}
 
 	// Your worker implementation here.
 
@@ -38,11 +46,9 @@ func Worker(mapf func(string, string) []KeyValue,
 
 }
 
-//
 // example function to show how to make an RPC call to the master.
 //
 // the RPC argument and reply types are defined in rpc.go.
-//
 func CallExample() {
 
 	// declare an argument structure.
@@ -61,11 +67,9 @@ func CallExample() {
 	fmt.Printf("reply.Y %v\n", reply.Y)
 }
 
-//
 // send an RPC request to the master, wait for the response.
 // usually returns true.
 // returns false if something goes wrong.
-//
 func call(rpcname string, args interface{}, reply interface{}) bool {
 	// c, err := rpc.DialHTTP("tcp", "127.0.0.1"+":1234")
 	sockname := masterSock()
