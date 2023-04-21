@@ -2,15 +2,15 @@ package mr
 
 import (
 	"log"
+	"net"
+	"net/http"
+	"net/rpc"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
-import "net"
-import "os"
-import "net/rpc"
-import "net/http"
 
 const (
 	Map = iota
@@ -151,7 +151,7 @@ func (m *Master) HandleTimeout(taskName string) {
 }
 
 func (m *Master) Done() bool {
-	ret := false
+	ret := true
 
 	// Your code here.
 
