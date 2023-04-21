@@ -1,9 +1,11 @@
 package mr
 
-import "fmt"
-import "log"
-import "net/rpc"
-import "hash/fnv"
+import (
+	"fmt"
+	"hash/fnv"
+	"log"
+	"net/rpc"
+)
 
 // Map functions return a slice of KeyValue.
 type KeyValue struct {
@@ -29,12 +31,12 @@ func Worker(mapf func(string, string) []KeyValue,
 		call("Master.GetTask", &args, &rep)
 
 		if rep.TaskType == Map {
-			filenames := HandleMap(mapf, rep, MFileName, rep.ReduceNumber, rep.TaskName)
-			rargs := ReportStatusRequest{filenames, rep.TaskName}
-			rreply := ReportStatusResponse{0}
-			call("Master.Report", &rargs, &rreply)
+			// filenames := HandleMap(mapf, rep, MFileName, rep.ReduceNumber, rep.TaskName)
+			// rargs := ReportStatusRequest{filenames, rep.TaskName}
+			// rreply := ReportStatusResponse{0}
+			// call("Master.Report", &rargs, &rreply)
 		} else if rep.TaskType == Reduce {
-			HandleReduce(reducef, rep.RFileName)
+			// HandleReduce(reducef, rep.RFileName)
 			//rargs:= ReportStatusRequest{}
 		}
 	}
