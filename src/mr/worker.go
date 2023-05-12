@@ -35,37 +35,30 @@ func ihash(key string) int {
 }
 
 // main/mrworker.go calls this function.
-func Worker(mapf func(string, string) []KeyValue,
-	reducef func(string, []string) string) {
-	for {
-		args := GetTaskRequest{}
-		args.X = 0
+func Worker(mapf func(string, string) []KeyValue, reducef func(string, []string) string) {
+	for { //无限循环
+		args := GetTaskRequest{0}
 		rep := GetTaskResponse{}
 		call("Master.GetTask", &args, &rep)
 
-		if rep.TaskType == Map {
+		if rep.TaskType == Map { //Map任务，处理
 			filenames := HandleMap(mapf, rep.MFileName, rep.ReduceNumber, rep.TaskName)
 			rargs := ReportStatusRequest{filenames, rep.TaskName}
 			rreply := ReportStatusResponse{0}
+			//上报任务完成
 			call("Master.Report", &rargs, &rreply)
-		} else if rep.TaskType == Reduce {
+		} else if rep.TaskType == Reduce { //Reduce任务，处理
 			HandleReduce(reducef, rep.RFileName)
 			rargs := ReportStatusRequest{make([]string, 0), rep.TaskName}
 			rreply := ReportStatusResponse{0}
 			call("Master.Report", &rargs, &rreply)
-		} else if rep.TaskType == Sleep {
+		} else if rep.TaskType == Sleep { // 没有任务，休眠
 			time.Sleep(time.Millisecond * 10)
-
 		} else {
 			log.Fatal("get task is not map sleep and reduce")
 		}
 	}
 }
-
-// Your worker implementation here.
-
-// uncomment to send the Example RPC to the master.
-// CallExample()
 
 func HandleMap(mapf func(string, string) []KeyValue, filename string, filenum int, tasknum string) []string {
 	intermediate := []KeyValue{}
@@ -77,9 +70,8 @@ func HandleMap(mapf func(string, string) []KeyValue, filename string, filenum in
 	if err != nil {
 		log.Fatal("cannot read %v", filename)
 	}
-
 	file.Close()
-	kva := mapf(filename, string(context))
+	kva := mapf(filename, string(context)) //调用用户设置的map函数
 	intermediate = append(intermediate, kva...)
 	filenames := make([]string, filenum)
 	files := make([]*os.File, filenum)
@@ -87,7 +79,6 @@ func HandleMap(mapf func(string, string) []KeyValue, filename string, filenum in
 	for i := 0; i < filenum; i++ {
 		oname := "mr"
 		oname = oname + "_" + tasknum + "_" + strconv.Itoa(i)
-
 		ofile, _ := os.Create(oname)
 		files[i] = ofile
 		filenames[i] = oname
@@ -114,7 +105,6 @@ func HandleReduce(reduce func(string, []string) string, filenames []string) stri
 			}
 			intermediate = append(intermediate, kv)
 		}
-
 	}
 
 	sort.Sort(ByKey(intermediate)) //将读到的所有键值对排序
@@ -180,12 +170,10 @@ func call(rpcname string, args interface{}, reply interface{}) bool {
 		log.Fatal("dialing:", err)
 	}
 	defer c.Close()
-
 	err = c.Call(rpcname, args, reply)
 	if err == nil {
 		return true
 	}
-
 	fmt.Println(err)
 	return false
 }

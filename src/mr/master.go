@@ -82,8 +82,8 @@ func (m *Master) server() {
 
 // GetTask 任务获取服务
 func (m *Master) GetTask(args *GetTaskRequest, reply *GetTaskResponse) error {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
+	m.mutex.Lock()         //首先需要加锁，因为Master是为多个Worker服务的
+	defer m.mutex.Unlock() //defer 当次函数运行结束时执行，这里代表释放锁
 	reply.RFileName = make([]string, 0)
 	reply.ReduceNumber = m.reduceNumber
 	reply.MFileName = ""
@@ -123,7 +123,6 @@ func (m *Master) GetTask(args *GetTaskRequest, reply *GetTaskResponse) error {
 				return nil
 			}
 		}
-
 		reply.TaskType = Sleep
 		return nil
 	}
@@ -173,7 +172,7 @@ func MakeMaster(files []string, nReduce int) *Master {
 func (m *Master) Report(args *ReportStatusRequest, reply *ReportStatusResponse) error {
 	reply.X = 1
 	m.mutex.Lock()
-	defer m.mutex.Unlock()
+	defer m.mutex.Unlock() //defer 在该函数结束时运行：释放锁操作
 	if t, ok := m.taskmap[args.TaskName]; ok {
 		flag := t.Status
 		if flag == Timeout {
