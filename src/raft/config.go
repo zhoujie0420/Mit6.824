@@ -8,17 +8,21 @@ package raft
 // test with the original before submitting.
 //
 
-import "../labrpc"
-import "log"
-import "sync"
-import "testing"
-import "runtime"
-import "math/rand"
-import crand "crypto/rand"
-import "math/big"
-import "encoding/base64"
-import "time"
-import "fmt"
+import (
+	"log"
+	"math/rand"
+	"runtime"
+	"sync"
+	"testing"
+
+	"6.824-golabs-2020/src/labrpc"
+
+	crand "crypto/rand"
+	"encoding/base64"
+	"fmt"
+	"math/big"
+	"time"
+)
 
 func randstring(n int) string {
 	b := make([]byte, 2*n)
@@ -57,6 +61,7 @@ type config struct {
 
 var ncpu_once sync.Once
 
+// 创建N个raft节点，并使其互相连接
 func make_config(t *testing.T, n int, unreliable bool) *config {
 	ncpu_once.Do(func() {
 		if runtime.NumCPU() < 2 {
@@ -69,12 +74,12 @@ func make_config(t *testing.T, n int, unreliable bool) *config {
 	cfg.t = t
 	cfg.net = labrpc.MakeNetwork()
 	cfg.n = n
-	cfg.applyErr = make([]string, cfg.n)
-	cfg.rafts = make([]*Raft, cfg.n)
-	cfg.connected = make([]bool, cfg.n)
+	cfg.applyErr = make([]string, cfg.n) // 节点的请求的返回信息
+	cfg.rafts = make([]*Raft, cfg.n)     // raft节点数组
+	cfg.connected = make([]bool, cfg.n)  //是否连接
 	cfg.saved = make([]*Persister, cfg.n)
-	cfg.endnames = make([][]string, cfg.n)
-	cfg.logs = make([]map[int]interface{}, cfg.n)
+	cfg.endnames = make([][]string, cfg.n)        // RPC暴露的接口
+	cfg.logs = make([]map[int]interface{}, cfg.n) // copy of each server's committed entries
 	cfg.start = time.Now()
 
 	cfg.setunreliable(unreliable)
@@ -126,13 +131,11 @@ func (cfg *config) crash1(i int) {
 	}
 }
 
-//
 // start or re-start a Raft.
 // if one already exists, "kill" it first.
 // allocate new outgoing port file names, and a new
 // state persister, to isolate previous instance of
 // this server. since we cannot really kill it.
-//
 func (cfg *config) start1(i int) {
 	cfg.crash1(i)
 
