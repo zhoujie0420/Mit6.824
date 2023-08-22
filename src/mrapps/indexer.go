@@ -6,14 +6,12 @@ package main
 // go build -buildmode=plugin indexer.go
 //
 
-import (
-	"fmt"
-	"sort"
-	"strings"
-	"unicode"
+import "fmt"
+import "6.824/mr"
 
-	"6.824-golabs-2020/src/mr"
-)
+import "strings"
+import "unicode"
+import "sort"
 
 // The mapping function is called once for each piece of the input.
 // In this framework, the key is the name of the file that is being processed,

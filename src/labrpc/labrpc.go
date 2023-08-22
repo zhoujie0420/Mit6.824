@@ -49,18 +49,15 @@ package labrpc
 //   pass svc to srv.AddService()
 //
 
-import (
-	"bytes"
-	"log"
-	"math/rand"
-	"reflect"
-	"strings"
-	"sync"
-	"sync/atomic"
-	"time"
-
-	"6.824-golabs-2020/src/labgob"
-)
+import "6.824/labgob"
+import "bytes"
+import "reflect"
+import "sync"
+import "log"
+import "strings"
+import "math/rand"
+import "time"
+import "sync/atomic"
 
 type reqMsg struct {
 	endname  interface{} // name of sending ClientEnd
@@ -93,7 +90,9 @@ func (e *ClientEnd) Call(svcMeth string, args interface{}, reply interface{}) bo
 
 	qb := new(bytes.Buffer)
 	qe := labgob.NewEncoder(qb)
-	qe.Encode(args)
+	if err := qe.Encode(args); err != nil {
+		panic(err)
+	}
 	req.args = qb.Bytes()
 
 	//

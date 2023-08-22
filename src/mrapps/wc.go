@@ -6,9 +6,7 @@ package main
 // go build -buildmode=plugin wc.go
 //
 
-import (
-	"6.824-golabs-2020/src/mr"
-)
+import "6.824/mr"
 import "unicode"
 import "strings"
 import "strconv"
@@ -25,13 +23,11 @@ func Map(filename string, contents string) []mr.KeyValue {
 	// split contents into an array of words.
 	words := strings.FieldsFunc(contents, ff)
 
-	//create key/value key is word,value is '1'
 	kva := []mr.KeyValue{}
 	for _, w := range words {
 		kv := mr.KeyValue{w, "1"}
 		kva = append(kva, kv)
 	}
-
 	return kva
 }
 
